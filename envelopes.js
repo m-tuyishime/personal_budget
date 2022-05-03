@@ -46,7 +46,7 @@ envelopesRouter.post("/:id/withdraw", (req, res, next) => {
   const amount = req.query.amount;
   const envelopeId = envelopes.findIndex((el) => el.id === req.params.id);
   // validates withdrawal
-  if (amount && envelopeId !== -1) {
+  if (amount && envelopeId > -1) {
     envelopes[envelopeId].budget -= amount;
     res.send({ id: req.params.id, budget: envelopes[envelopeId].budget });
   } else {
@@ -56,6 +56,24 @@ envelopesRouter.post("/:id/withdraw", (req, res, next) => {
   }
 });
 
+// transfers money from one envelope to another
+envelopesRouter.post('/:id1/transfer-to/:id2', (req, res, next) => {
+    const envelopeId1 = envelopes.findIndex((el) => el.id === req.params.id1);
+    const envelopeId2 = envelopes.findIndex((el) => el.id === req.params.id2);
+    const amount = Number(req.query.amount);
+    if (envelopeId1 > -1 && envelopeId2 > -1 && amount) {
+        envelopes[envelopeId1].budget = Number(envelopes[envelopeId1].budget) - amount;
+        envelopes[envelopeId2].budget = Number(envelopes[envelopeId2].budget) + amount;
+        res.send({ id: req.params.id1, budget: envelopes[envelopeId1].budget,
+            id: req.params.id2, budget: envelopes[envelopeId2].budget });
+    } else {
+        const error = new Error('transfer not valid');
+        error.status = 400;
+        next(error);
+    }
+})
+
+// deletes envelope by id
 envelopesRouter.delete('/:id', (req, res, next) => {
     const envelopeId = envelopes.findIndex((el) => el.id === req.params.id);
     if (envelopeId !== -1) {
@@ -66,6 +84,6 @@ envelopesRouter.delete('/:id', (req, res, next) => {
         error.status = 400;
         next(error);
     }
-})
+});
 
 module.exports = envelopesRouter;
