@@ -34,7 +34,7 @@ envelopesRouter.post("/", (req, res, next) => {
       envelopes.push(envelope);
       res.status(201).send(envelope);
     } else {
-      let error = new Error('add envelope id and budget');
+      const error = new Error("add envelope id and budget");
       error.status = 400;
       next(error);
     }
@@ -42,15 +42,27 @@ envelopesRouter.post("/", (req, res, next) => {
 });
 
 // withdraws amount by envelope id
-envelopesRouter.post('/:id/withdraw', (req, res, next) => {
-    const amount = Number(req.query.amount);
-    const envelopeId = envelopes.findIndex(el => el.id === req.params.id);
-    // validates withdrawal 
-    if (amount && envelopeId !== -1) {
-        envelopes[envelopeId].budget -= amount;
-        res.send({budget: envelopes[envelopeId].budget});
+envelopesRouter.post("/:id/withdraw", (req, res, next) => {
+  const amount = req.query.amount;
+  const envelopeId = envelopes.findIndex((el) => el.id === req.params.id);
+  // validates withdrawal
+  if (amount && envelopeId !== -1) {
+    envelopes[envelopeId].budget -= amount;
+    res.send({ id: req.params.id, budget: envelopes[envelopeId].budget });
+  } else {
+    const error = new Error("withdrawal not valid");
+    error.status = 400;
+    next(error);
+  }
+});
+
+envelopesRouter.delete('/:id', (req, res, next) => {
+    const envelopeId = envelopes.findIndex((el) => el.id === req.params.id);
+    if (envelopeId !== -1) {
+        envelopes.splice(envelopeId, 1);
+        res.send(envelopes);
     } else {
-        let error = new Error('withdrawal not valid');
+        const error = new Error("deletion not completed! Invalid id.");
         error.status = 400;
         next(error);
     }
